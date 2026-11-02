@@ -8,6 +8,7 @@ import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import uo.ri.cws.domain.base.BaseEntity;
 import uo.ri.cws.domain.types.Address;
@@ -35,8 +36,9 @@ public class Client extends BaseEntity {
     private Set<Vehicle> vehicles = new HashSet<>();
     @OneToMany(mappedBy = "client")
     private Set<PaymentMean> paymentMeans = new HashSet<>();
-
+    @OneToOne(mappedBy = "recommender")
     private Recommendation recommendedBy;
+    @OneToMany(mappedBy = "recommended")
     private Set<Recommendation> recommendations = new HashSet<>();
 
     // ---- Constructors ----

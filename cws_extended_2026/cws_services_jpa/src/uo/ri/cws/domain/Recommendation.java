@@ -1,15 +1,30 @@
 package uo.ri.cws.domain;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
 import uo.ri.cws.domain.base.BaseEntity;
 import uo.ri.util.assertion.ArgumentChecks;
 
+@Entity
+@Table(name = "TRECOMMENDATIONS")
 public class Recommendation extends BaseEntity {
     // Natural attributes
     private boolean usedForVoucher = false;
 
     // Accidental attributes
+    @OneToOne
+    @JoinColumn(name = "recommender_id")
     private Client recommender;
+    @ManyToOne
+    @JoinColumn(name = "recommended_id")
     private Client recommended;
+
+    Recommendation() {
+
+    }
 
     public Recommendation(boolean usedForVoucher, Client recommender, Client recommended) {
         ArgumentChecks.isNotNull(recommender, "Recommender client cannot be null");
