@@ -36,6 +36,7 @@ public class Invoice extends BaseEntity {
     private LocalDate date;
     @Enumerated(EnumType.STRING)
     private InvoiceState state = InvoiceState.ISSUED;
+    private boolean usedForVoucher = false;
 
     /*
      * Subtotal amount of the invoice, before applying VAT. This represents the
@@ -144,6 +145,10 @@ public class Invoice extends BaseEntity {
 
     public Money getTotal() {
         return total;
+    }
+
+    public boolean isUsedForVoucher() {
+        return usedForVoucher;
     }
 
     // ------------------ Association helpers (package-private)
@@ -282,10 +287,19 @@ public class Invoice extends BaseEntity {
         return calculator.toMoneyRoundedToCents();
     }
 
+    public void markAsUsedForVoucher() {
+        this.usedForVoucher = true;
+    }
+
+    public boolean canGenerateVoucher30() {
+        return this.total.greaterThan(Money.of("500")) && !usedForVoucher && this.state.equals(InvoiceState.PAID);
+    }
+
     @Override
     public String toString() {
-        return "Invoice [number=" + number + ", date=" + date + ", state=" + state + ", subtotal=" + subtotal
-            + ", vatRate=" + vatRate + ", vatAmount=" + vatAmount + ", total=" + total + "]";
+        return "Invoice [number=" + number + ", date=" + date + ", state=" + state + ", usedForVoucher="
+            + usedForVoucher + ", subtotal=" + subtotal + ", vatRate=" + vatRate + ", vatAmount=" + vatAmount
+            + ", total=" + total + "]";
     }
 
 }

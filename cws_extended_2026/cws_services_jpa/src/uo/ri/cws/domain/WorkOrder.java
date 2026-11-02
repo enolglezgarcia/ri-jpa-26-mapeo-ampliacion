@@ -36,6 +36,7 @@ public class WorkOrder extends BaseEntity {
     private Money amount = Money.ZERO; // cents
     @Enumerated(EnumType.STRING)
     private WorkOrderState state = WorkOrderState.OPEN;
+    private boolean usedForVoucher = false;
 
     // Accidental attributes
     @ManyToOne
@@ -150,6 +151,10 @@ public class WorkOrder extends BaseEntity {
 
     public boolean isInvoiced() {
         return state == WorkOrderState.INVOICED;
+    }
+
+    public boolean isUsedForVoucher() {
+        return usedForVoucher;
     }
 
     // ---- Business methods & state transitions ----
@@ -371,11 +376,19 @@ public class WorkOrder extends BaseEntity {
 
     }
 
-    // ---- Object methods ----
+    public void markAsUsedForVoucher() {
+        this.usedForVoucher = true;
+    }
+
+    public boolean canBeUsedForVoucher() {
+        return state.equals(WorkOrderState.INVOICED) && invoice.getState().equals(Invoice.InvoiceState.PAID)
+            && !usedForVoucher;
+    }
+
     @Override
     public String toString() {
         return "WorkOrder [date=" + date + ", description=" + description + ", amount=" + amount + ", state=" + state
-            + ", vehicle=" + vehicle + "]";
+            + ", usedForVoucher=" + usedForVoucher + ", vehicle=" + vehicle + "]";
     }
 
 }

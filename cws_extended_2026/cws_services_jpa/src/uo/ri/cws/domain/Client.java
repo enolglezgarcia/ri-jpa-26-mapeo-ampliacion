@@ -1,6 +1,7 @@
 package uo.ri.cws.domain;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import jakarta.persistence.AttributeOverride;
@@ -33,6 +34,9 @@ public class Client extends BaseEntity {
     private Set<Vehicle> vehicles = new HashSet<>();
     @OneToMany(mappedBy = "client")
     private Set<PaymentMean> paymentMeans = new HashSet<>();
+
+    private Recommendation recommendedBy;
+    private Set<Recommendation> recommendations = new HashSet<>();
 
     // ---- Constructors ----
     Client() {
@@ -82,12 +86,51 @@ public class Client extends BaseEntity {
         return address;
     }
 
+    public Recommendation getRecommendation() {
+        return recommendedBy;
+    }
+
     public Set<Vehicle> getVehicles() {
         return new HashSet<>(vehicles);
     }
 
     public Set<PaymentMean> getPaymentMeans() {
         return new HashSet<>(paymentMeans);
+    }
+
+    public Set<Recommendation> getRecommendations() {
+        return new HashSet<>(recommendations);
+    }
+
+    public List<WorkOrder> getWorkOrdersAvailableForVoucher20() {
+        return vehicles.stream().flatMap(vehicle -> vehicle.getWorkOrders().stream())
+            .filter(workOrder -> workOrder.canBeUsedForVoucher()).toList();
+    }
+
+    private boolean hasRecommendedThreeClients() {
+        return recommendations.size() >= 3;
+    }
+
+    private boolean hasAWorkOrderdAndAnInvoicePaid() {
+        return vehicles.stream().flatMap(vehicle -> vehicle.getWorkOrders().stream())
+            .anyMatch(w -> w.isInvoiced() && w.getInvoice().getState().equals(Invoice.InvoiceState.PAID));
+    }
+
+    private boolean isValidRecommendation() {
+        Set<Recommendation> recommendations = getRecommendations();
+        int valid = 0;
+        for (Recommendation recommendation : recommendations) {
+            if (recommendation.getRecommended().hasAWorkOrderdAndAnInvoicePaid()
+                && !recommendation.isUsedForVoucher()) {
+                valid++;
+            }
+        }
+
+        return valid >= 3;
+    }
+
+    public boolean isEligibleForVoucher25() {
+        return hasRecommendedThreeClients() && hasAWorkOrderdAndAnInvoicePaid() && isValidRecommendation();
     }
 
     // Association helpers
@@ -99,6 +142,10 @@ public class Client extends BaseEntity {
     /* package */
     Set<PaymentMean> _getPaymentMeans() {
         return paymentMeans;
+    }
+
+    Set<Recommendation> _getRecommendations() {
+        return recommendations;
     }
 
 }
