@@ -16,6 +16,7 @@ import uo.ri.cws.domain.types.FullName;
 import uo.ri.cws.domain.types.Nif;
 import uo.ri.cws.domain.types.PhoneNumber;
 import uo.ri.util.assertion.ArgumentChecks;
+import uo.ri.util.assertion.StateChecks;
 
 @Entity
 @Table(name = "TCLIENTS")
@@ -107,6 +108,24 @@ public class Client extends BaseEntity {
             .filter(workOrder -> workOrder.canBeUsedForVoucher()).toList();
     }
 
+    public List<Recommendation> getRecommendationsAvailableForVoucher25() {
+        return recommendations.stream()
+            .filter(recommendation -> recommendation.getRecommended().hasAWorkOrderdAndAnInvoicePaid())
+            .filter(recommendation -> !recommendation.isUsedForVoucher()).toList();
+    }
+
+    public void markThreeRecommendationsAsUsedForVoucher25() {
+        List<Recommendation> available = getRecommendationsAvailableForVoucher25();
+        StateChecks.isTrue(available.size() >= 3, "Not enough recommendations available to mark as used");
+        available.stream().limit(3).forEach(recommendation -> recommendation.markAsUsedForVoucher());
+    }
+
+    public void markThreeWorkOrdersAsUsedForVoucher20() {
+        List<WorkOrder> available = getWorkOrdersAvailableForVoucher20();
+        StateChecks.isTrue(available.size() >= 3, "Not enough work orders available to mark as used");
+        available.stream().limit(3).forEach(workOrder -> workOrder.markAsUsedForVoucher());
+    }
+
     private boolean hasRecommendedThreeClients() {
         return recommendations.size() >= 3;
     }
@@ -146,6 +165,10 @@ public class Client extends BaseEntity {
 
     Set<Recommendation> _getRecommendations() {
         return recommendations;
+    }
+
+    void _setRecommendation(Recommendation recommendation) {
+        this.recommendedBy = recommendation;
     }
 
 }
